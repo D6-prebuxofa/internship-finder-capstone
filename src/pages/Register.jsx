@@ -1,84 +1,63 @@
-import { Link } from "react-router-dom"
-import { useState } from "react"
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-function Register() {
+const Register = () => {
+  const navigate = useNavigate();
 
-  const [role, setRole] = useState("Student")
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "student",
+  });
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+
+    const response = await fetch(
+      "http://127.0.0.1:5000/api/auth/register",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      }
+    );
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert("Registration successful!");
+      navigate("/");
+    } else {
+      alert(data.message);
+    }
+  };
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      background: "#f3f4f6",
-      fontFamily: "Segoe UI"
-    }}>
-      <div style={{
-        width: "100%",
-        maxWidth: "400px",
-        background: "white",
-        padding: "25px",
-        borderRadius: "12px",
-        boxShadow: "0 10px 20px rgba(0,0,0,0.1)"
-      }}>
-        <h2 style={{ marginBottom: "20px" }}>Register</h2>
+    <div>
+      <h2>Register</h2>
 
-        <input
-          type="text"
-          placeholder="Full Name"
-          style={inputStyle}
-        />
+      <form onSubmit={handleRegister}>
+        <input name="name" placeholder="Name" onChange={handleChange} required />
+        <input name="email" placeholder="Email" onChange={handleChange} required />
+        <input name="password" placeholder="Password" onChange={handleChange} required />
 
-        <input
-          type="email"
-          placeholder="Email"
-          style={inputStyle}
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          style={inputStyle}
-        />
-
-        <select
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          style={inputStyle}
-        >
-          <option>Student</option>
-          <option>Company</option>
+        <select name="role" onChange={handleChange}>
+          <option value="student">Student</option>
         </select>
 
-        <button style={buttonStyle}>
-          Register
-        </button>
-
-        <p style={{ marginTop: "15px", fontSize: "14px" }}>
-          Already have an account? <Link to="/">Login</Link>
-        </p>
-      </div>
+        <button type="submit">Register</button>
+      </form>
     </div>
-  )
-}
+  );
+};
 
-const inputStyle = {
-  width: "100%",
-  padding: "10px",
-  marginBottom: "12px",
-  borderRadius: "8px",
-  border: "1px solid #ccc"
-}
+export default Register;
 
-const buttonStyle = {
-  width: "100%",
-  padding: "10px",
-  backgroundColor: "#6366f1",
-  color: "white",
-  border: "none",
-  borderRadius: "8px",
-  cursor: "pointer"
-}
-
-export default Register
