@@ -12,13 +12,12 @@ app.use(express.json());
 
 console.log("SERVER STARTED");
 
-// MongoDB Connection
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log("MongoDB Error:", err));
 
-// ================= USER MODEL =================
 const userSchema = new mongoose.Schema({
   name: String,
   email: String,
@@ -28,13 +27,24 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
-// ================= REGISTER =================
+
+const applicationSchema = new mongoose.Schema({
+  userId: String,
+  jobTitle: String,
+  status: {
+    type: String,
+    default: "Pending",
+  },
+});
+
+const Application = mongoose.model("Application", applicationSchema);
+
+
 app.post("/api/auth/register", async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
     const existingUser = await User.findOne({ email });
-
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -49,7 +59,7 @@ app.post("/api/auth/register", async (req, res) => {
   }
 });
 
-// ================= LOGIN =================
+
 app.post("/api/auth/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -74,17 +84,42 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-// ================= APPLY =================
-app.post("/api/applications/apply", (req, res) => {
-  console.log("Apply route hit");
-  console.log(req.body);
 
-  res.status(200).json({
-    message: "Application submitted successfully",
-  });
+app.post("/api/applications/apply", async (req, res) => {
+  try {
+    const { userId, jobTitle } = req.body;
+
+    const newApplication = new Application({
+      userId,
+      jobTitle,
+    });
+
+    await newApplication.save();
+
+    res.status(200).json({
+      message: "Application submitted successfully",
+    });
+  } catch (error) {
+    console.log("Apply Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
-// ================= ROOT =================
+
+app.get("/api/applications/:userId", async (req, res) => {
+  try {
+    const applications = await Application.find({
+      userId: req.params.userId,
+    });
+
+    res.status(200).json(applications);
+  } catch (error) {
+    console.log("Fetch Applications Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 app.get("/", (req, res) => {
   res.send("Backend running...");
 });
@@ -92,7 +127,6 @@ app.get("/", (req, res) => {
 app.listen(5000, () => {
   console.log("Server running on port 5000");
 });
-
 
 
 

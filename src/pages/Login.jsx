@@ -29,7 +29,9 @@ const Login = () => {
 
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      navigate("/student-dashboard");
+     
+      navigate("/dashboard");
+
     } catch (error) {
       console.error(error);
       alert("Network error");
@@ -37,7 +39,7 @@ const Login = () => {
   };
 
   return (
-    <div>
+    <div style={{ padding: "20px" }}>
       <h2>Login</h2>
 
       <form onSubmit={handleLogin}>
@@ -48,6 +50,8 @@ const Login = () => {
           required
         />
 
+        <br /><br />
+
         <input
           type="password"
           placeholder="Password"
@@ -55,8 +59,12 @@ const Login = () => {
           required
         />
 
+        <br /><br />
+
         <button type="submit">Login</button>
       </form>
+
+      <br />
 
       <button onClick={() => navigate("/register")}>
         Go to Register

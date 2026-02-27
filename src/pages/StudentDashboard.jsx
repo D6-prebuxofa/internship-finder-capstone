@@ -1,13 +1,17 @@
+import { useNavigate } from "react-router-dom";
+
 const StudentDashboard = () => {
   const navigate = useNavigate();
 
   return (
-    <div>
+    <div style={{ padding: "20px" }}>
       <h2>Student Dashboard</h2>
 
-      <button onClick={() => navigate("/details")}>
-        View Internship
+      <button onClick={() => navigate("/internships")}>
+        Browse Internships
       </button>
+
+      <br /><br />
 
       <button
         onClick={() => {
