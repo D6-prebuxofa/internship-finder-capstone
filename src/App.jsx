@@ -1,20 +1,39 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import Navbar from "./components/Navbar";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import StudentDashboard from "./pages/StudentDashboard";
-import Internships from "./pages/Internships";
 import InternshipDetails from "./pages/InternshipDetails";
 
 function App() {
+  const location = useLocation();
+  const showNavbar = !["/", "/register"].includes(location.pathname);
+
+  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
+  };
+
   return (
-    <Routes>
-      <Route path="/" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/dashboard" element={<StudentDashboard />} />
-      <Route path="/internships" element={<Internships />} />
-      <Route path="/details/:id" element={<InternshipDetails />} />
-    </Routes>
+    <>
+      {showNavbar && <Navbar theme={theme} onToggleTheme={toggleTheme} />}
+      <main className="app-main">
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<StudentDashboard />} />
+          <Route path="/details/:id" element={<InternshipDetails />} />
+        </Routes>
+      </main>
+    </>
   );
 }
 

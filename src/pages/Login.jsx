@@ -11,14 +11,11 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch(
-        "http://127.0.0.1:5000/api/auth/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      const response = await fetch("http://127.0.0.1:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
 
       const data = await response.json();
 
@@ -28,10 +25,7 @@ const Login = () => {
       }
 
       localStorage.setItem("user", JSON.stringify(data.user));
-
-     
       navigate("/dashboard");
-
     } catch (error) {
       console.error(error);
       alert("Network error");
@@ -39,36 +33,39 @@ const Login = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Login</h2>
+    <div className="container auth-shell">
+      <h2 className="page-title">Welcome Back</h2>
+      <p className="page-subtitle">Log in to find and apply for internships faster.</p>
 
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleLogin} className="auth-form">
         <input
           type="email"
           placeholder="Email"
+          className="input-field"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
 
-        <br /><br />
-
         <input
           type="password"
           placeholder="Password"
+          className="input-field"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
 
-        <br /><br />
-
-        <button type="submit">Login</button>
+        <button type="submit" className="button-primary">
+          Login
+        </button>
       </form>
 
-      <br />
-
-      <button onClick={() => navigate("/register")}>
-        Go to Register
-      </button>
+      <div className="auth-switch">
+        <button className="button-light" onClick={() => navigate("/register")}>
+          Create Account
+        </button>
+      </div>
     </div>
   );
 };
