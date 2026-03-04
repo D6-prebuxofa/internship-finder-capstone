@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import StudentDashboard from "./pages/StudentDashboard";
+import CompanyDashboard from "./pages/CompanyDashboard";
 import InternshipDetails from "./pages/InternshipDetails";
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<StudentDashboard />} />
+          <Route path="/company/dashboard" element={<CompanyDashboard />} />
           <Route path="/details/:id" element={<InternshipDetails />} />
         </Routes>
       </main>

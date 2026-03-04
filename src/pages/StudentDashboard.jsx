@@ -6,16 +6,38 @@ const StudentDashboard = () => {
   const [applications, setApplications] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(() => JSON.parse(localStorage.getItem("user")));
+  const [profileForm, setProfileForm] = useState(() => ({
+    name: JSON.parse(localStorage.getItem("user"))?.name || "",
+    email: JSON.parse(localStorage.getItem("user"))?.email || "",
+    phone: JSON.parse(localStorage.getItem("user"))?.phone || "",
+    password: ""
+  }));
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const user = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
+    if (!currentUser) return;
+    setProfileForm({
+      name: currentUser.name || "",
+      email: currentUser.email || "",
+      phone: currentUser.phone || "",
+      password: ""
+    });
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (currentUser?.role === "company") {
+      navigate("/company/dashboard");
+      return;
+    }
+
     const fetchDashboardData = async () => {
       try {
         const internshipsPromise = fetch("http://127.0.0.1:5000/api/internships").then((res) => res.json());
-        const applicationsPromise = user?._id
-          ? fetch(`http://127.0.0.1:5000/api/applications/${user._id}`).then((res) => res.json())
+        const applicationsPromise = currentUser?._id
+          ? fetch(`http://127.0.0.1:5000/api/applications/${currentUser._id}`).then((res) => res.json())
           : Promise.resolve([]);
 
         const [internshipsData, applicationsData] = await Promise.all([
@@ -33,22 +55,78 @@ const StudentDashboard = () => {
     };
 
     fetchDashboardData();
-  }, [user?._id]);
+  }, [currentUser?._id, currentUser?.role, navigate]);
 
   useEffect(() => {
     if (loading) return;
-    if (location.hash === "#my-applications") {
-      const section = document.getElementById("my-applications");
-      if (section) {
-        section.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+    const targetMap = {
+      "#profile": "profile-settings",
+      "#my-applications": "my-applications"
+    };
+    const sectionId = targetMap[location.hash];
+    if (sectionId) {
+      const section = document.getElementById(sectionId);
+      if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [loading, location.hash]);
+
+  const handleProfileInput = (e) => {
+    setProfileForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    if (!currentUser?._id) {
+      alert("Please login first");
+      navigate("/");
+      return;
+    }
+
+    setIsSavingProfile(true);
+    try {
+      const payload = {
+        name: profileForm.name.trim(),
+        email: profileForm.email.trim(),
+        phone: profileForm.phone.trim()
+      };
+      if (profileForm.password.trim()) {
+        payload.password = profileForm.password.trim();
+      }
+
+      const response = await fetch(`http://127.0.0.1:5000/api/users/${currentUser._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message || "Failed to update profile");
+        return;
+      }
+
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setCurrentUser(data.user);
+      alert("Profile updated successfully");
+    } catch (error) {
+      console.error("Profile update error:", error);
+      alert("Network error while updating profile");
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
 
   const filteredJobs = jobs.filter((job) =>
     job.title.toLowerCase().includes(search.toLowerCase())
   );
   const appliedInternshipIds = new Set(applications.map((item) => item.internshipId));
+  const showAppliedOnly = location.hash === "#my-applications";
+  const visibleJobs = showAppliedOnly
+    ? filteredJobs.filter((job) => appliedInternshipIds.has(job._id))
+    : filteredJobs;
 
   if (loading) {
     return (
@@ -60,12 +138,77 @@ const StudentDashboard = () => {
 
   return (
     <section className="container">
+      <section id="profile-settings" className="applications-section profile-section">
+        <h3>Edit Profile</h3>
+        <form onSubmit={handleProfileUpdate} className="auth-form profile-form">
+          <div className="profile-grid">
+            <input
+              type="text"
+              name="name"
+              className="input-field"
+              placeholder="Full name"
+              value={profileForm.name}
+              onChange={handleProfileInput}
+              required
+            />
+            <input
+              type="email"
+              name="email"
+              className="input-field"
+              placeholder="Email"
+              value={profileForm.email}
+              onChange={handleProfileInput}
+              required
+            />
+            <input
+              type="tel"
+              name="phone"
+              className="input-field"
+              placeholder="Mobile number"
+              value={profileForm.phone}
+              onChange={handleProfileInput}
+            />
+          </div>
+          <input
+            type="password"
+            name="password"
+            className="input-field"
+            placeholder="New password (leave blank to keep current)"
+            value={profileForm.password}
+            onChange={handleProfileInput}
+          />
+          <div className="button-row">
+            <button type="submit" className="button-primary" disabled={isSavingProfile}>
+              {isSavingProfile ? "Saving..." : "Save Profile"}
+            </button>
+            <button
+              type="button"
+              className="button-light"
+              onClick={() =>
+                setProfileForm({
+                  name: currentUser?.name || "",
+                  email: currentUser?.email || "",
+                  phone: currentUser?.phone || "",
+                  password: ""
+                })
+              }
+            >
+              Reset
+            </button>
+          </div>
+        </form>
+      </section>
+
       <div className="dashboard-header">
         <div>
           <h2 className="page-title">Internship Opportunities</h2>
-          <p className="page-subtitle">Search roles and open each listing for application details.</p>
+          <p className="page-subtitle">
+            {showAppliedOnly
+              ? "Showing only internships you have applied to."
+              : "Search roles and open each listing for application details."}
+          </p>
         </div>
-        <span className="result-chip">{filteredJobs.length} results</span>
+        <span className="result-chip">{visibleJobs.length} results</span>
       </div>
 
       <input
@@ -97,14 +240,18 @@ const StudentDashboard = () => {
         )}
       </section>
 
-      {filteredJobs.length === 0 ? (
+      {visibleJobs.length === 0 ? (
         <div className="empty-state">
-          <h3>No internships found</h3>
-          <p>Try a different keyword to see more opportunities.</p>
+          <h3>{showAppliedOnly ? "No applied internships found" : "No internships found"}</h3>
+          <p>
+            {showAppliedOnly
+              ? "You have not applied to internships matching this search."
+              : "Try a different keyword to see more opportunities."}
+          </p>
         </div>
       ) : (
         <div className="dashboard-grid">
-          {filteredJobs.map((job) => (
+          {visibleJobs.map((job) => (
             <article key={job._id} className="card job-card">
               <h3>{job.title}</h3>
               <p className="muted-text">{job.description}</p>

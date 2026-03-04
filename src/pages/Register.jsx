@@ -80,6 +80,7 @@ const Register = () => {
 
         <select name="role" value={formData.role} onChange={handleChange}>
           <option value="student">Student</option>
+          <option value="company">Company</option>
         </select>
 
         <button type="submit" className="button-primary">

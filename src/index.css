@@ -112,7 +112,8 @@ body {
 
 .input-field,
 input,
-select {
+select,
+textarea {
   width: 100%;
   padding: 11px 12px;
   border: 1px solid var(--border);
@@ -125,7 +126,8 @@ select {
 
 .input-field:focus,
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   border-color: var(--primary-dark);
   box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
 }
@@ -197,6 +199,20 @@ select:focus {
   margin-bottom: 10px;
 }
 
+.profile-section {
+  margin-top: 0;
+}
+
+.profile-form {
+  gap: 10px;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
 .applications-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -241,6 +257,15 @@ select:focus {
 }
 
 .job-card .button-primary {
+  width: 100%;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.job-card .button-row .button-primary,
+.job-card .button-row .button-light {
   width: 100%;
   height: 42px;
   display: flex;
@@ -346,5 +371,9 @@ select:focus {
 
   .page-title {
     font-size: 1.5rem;
+  }
+
+  .profile-grid {
+    grid-template-columns: 1fr;
   }
 }

@@ -25,7 +25,11 @@ const Login = () => {
       }
 
       localStorage.setItem("user", JSON.stringify(data.user));
-      navigate("/dashboard");
+      if (data.user.role === "company") {
+        navigate("/company/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error) {
       console.error(error);
       alert("Network error");
