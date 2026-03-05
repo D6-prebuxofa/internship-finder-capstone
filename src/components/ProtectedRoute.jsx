@@ -13,6 +13,11 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
     return <Navigate to="/" replace />;
   }
 
+  if (user.isActive === false) {
+    localStorage.removeItem("user");
+    return <Navigate to="/" replace />;
+  }
+
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     return <Navigate to={getDashboardPath(user.role)} replace />;
   }

@@ -83,24 +83,46 @@ const AdminDashboard = () => {
   };
 
   const handleDeleteUser = async (targetUserId, targetUserName) => {
-    const ok = window.confirm(`Delete user ${targetUserName}?`);
+    const targetUser = users.find((item) => item._id === targetUserId);
+    const newStatus = !targetUser?.isActive;
+    const actionText = newStatus ? "activate" : "deactivate";
+    const ok = window.confirm(`${actionText} user ${targetUserName}?`);
     if (!ok) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/users/${targetUserId}`, {
-        method: "DELETE",
+      const response = await fetch(`${API_BASE_URL}/api/admin/users/${targetUserId}/status`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminId })
+        body: JSON.stringify({ adminId, isActive: newStatus })
       });
       const data = await response.json();
       if (!response.ok) {
-        alert(data.message || "Failed to delete user");
+        alert(data.message || "Failed to update user status");
         return;
       }
       fetchAdminData();
     } catch (error) {
-      console.error("Delete user error:", error);
-      alert("Network error while deleting user");
+      console.error("Update user status error:", error);
+      alert("Network error while updating user status");
+    }
+  };
+
+  const handleCompanyApproval = async (companyId, isApproved) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/companies/${companyId}/approval`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminId, isApproved })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        alert(data.message || "Failed to update company approval");
+        return;
+      }
+      fetchAdminData();
+    } catch (error) {
+      console.error("Update company approval error:", error);
+      alert("Network error while updating approval");
     }
   };
 
@@ -151,6 +173,14 @@ const AdminDashboard = () => {
                 <p className="application-role">{member.name}</p>
                 <p className="application-meta">Email: {member.email}</p>
                 <p className="application-meta">Phone: {member.phone || "-"}</p>
+                <p className="application-meta">
+                  Account: <strong>{member.isActive ? "Active" : "Deactivated"}</strong>
+                </p>
+                {member.role === "company" && (
+                  <p className="application-meta">
+                    Company Approval: <strong>{member.isApproved ? "Approved" : "Pending"}</strong>
+                  </p>
+                )}
                 <div className="button-row">
                   <select
                     value={member.role}
@@ -166,9 +196,19 @@ const AdminDashboard = () => {
                     disabled={member._id === adminId}
                     onClick={() => handleDeleteUser(member._id, member.name)}
                   >
-                    Delete User
+                    {member.isActive ? "Deactivate" : "Activate"}
                   </button>
                 </div>
+                {member.role === "company" && (
+                  <div className="button-row">
+                    <button
+                      className="button-light"
+                      onClick={() => handleCompanyApproval(member._id, !member.isApproved)}
+                    >
+                      {member.isApproved ? "Set Pending" : "Approve Company"}
+                    </button>
+                  </div>
+                )}
               </article>
             ))}
           </div>

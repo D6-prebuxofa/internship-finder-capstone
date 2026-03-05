@@ -52,6 +52,9 @@ const Navbar = ({ theme, onToggleTheme }) => {
             <button className="button-light" onClick={() => navigate("/dashboard#my-applications")}>
               My Applications
             </button>
+            <button className="button-light" onClick={() => navigate("/dashboard#saved")}>
+              Saved Internships
+            </button>
           </>
         )}
         <button className="button-light" onClick={onToggleTheme}>

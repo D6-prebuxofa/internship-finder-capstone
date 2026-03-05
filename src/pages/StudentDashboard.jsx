@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import API_BASE_URL from "../config/api";
 
 const StudentDashboard = () => {
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [savedInternshipIds, setSavedInternshipIds] = useState(new Set());
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(() => JSON.parse(localStorage.getItem("user")));
@@ -40,14 +41,19 @@ const StudentDashboard = () => {
         const applicationsPromise = currentUser?._id
           ? fetch(`${API_BASE_URL}/api/applications/${currentUser._id}`).then((res) => res.json())
           : Promise.resolve([]);
+        const savedPromise = currentUser?._id
+          ? fetch(`${API_BASE_URL}/api/saved/${currentUser._id}`).then((res) => res.json())
+          : Promise.resolve([]);
 
-        const [internshipsData, applicationsData] = await Promise.all([
+        const [internshipsData, applicationsData, savedData] = await Promise.all([
           internshipsPromise,
-          applicationsPromise
+          applicationsPromise,
+          savedPromise
         ]);
 
-        setJobs(internshipsData);
+        setJobs(Array.isArray(internshipsData) ? internshipsData : []);
         setApplications(Array.isArray(applicationsData) ? applicationsData : []);
+        setSavedInternshipIds(new Set((Array.isArray(savedData) ? savedData : []).map((item) => item.internshipId)));
       } catch (error) {
         console.error("Dashboard fetch error:", error);
       } finally {
@@ -62,7 +68,8 @@ const StudentDashboard = () => {
     if (loading) return;
     const targetMap = {
       "#profile": "profile-settings",
-      "#my-applications": "my-applications"
+      "#my-applications": "my-applications",
+      "#saved": "saved-internships"
     };
     const sectionId = targetMap[location.hash];
     if (sectionId) {
@@ -120,6 +127,38 @@ const StudentDashboard = () => {
     }
   };
 
+  const handleToggleSave = async (internshipId) => {
+    if (!currentUser?._id) return;
+    try {
+      const isSaved = savedInternshipIds.has(internshipId);
+      const endpoint = isSaved
+        ? `${API_BASE_URL}/api/saved/${currentUser._id}/${internshipId}`
+        : `${API_BASE_URL}/api/saved`;
+
+      const response = await fetch(endpoint, {
+        method: isSaved ? "DELETE" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: isSaved ? undefined : JSON.stringify({ userId: currentUser._id, internshipId })
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message || "Failed to update saved internships");
+        return;
+      }
+
+      setSavedInternshipIds((prev) => {
+        const updated = new Set(prev);
+        if (isSaved) updated.delete(internshipId);
+        else updated.add(internshipId);
+        return updated;
+      });
+    } catch (error) {
+      console.error("Save internship error:", error);
+      alert("Network error while saving internship");
+    }
+  };
+
   const filteredJobs = jobs.filter((job) =>
     job.title.toLowerCase().includes(search.toLowerCase())
   );
@@ -128,6 +167,11 @@ const StudentDashboard = () => {
   const visibleJobs = showAppliedOnly
     ? filteredJobs.filter((job) => appliedInternshipIds.has(job._id))
     : filteredJobs;
+
+  const savedJobs = useMemo(
+    () => jobs.filter((job) => savedInternshipIds.has(job._id)),
+    [jobs, savedInternshipIds]
+  );
 
   if (loading) {
     return (
@@ -241,6 +285,33 @@ const StudentDashboard = () => {
         )}
       </section>
 
+      <section id="saved-internships" className="applications-section">
+        <h3>Saved Internships</h3>
+        {savedJobs.length === 0 ? (
+          <p className="muted-text">You have not saved internships yet.</p>
+        ) : (
+          <div className="dashboard-grid">
+            {savedJobs.map((job) => (
+              <article key={job._id} className="card job-card">
+                <h3>{job.title}</h3>
+                <p className="muted-text">{job.description}</p>
+                <div className="meta-row">
+                  <span className="meta-chip">{job.location}</span>
+                </div>
+                <div className="button-row">
+                  <button className="button-light" onClick={() => handleToggleSave(job._id)}>
+                    Remove Saved
+                  </button>
+                  <button className="button-primary" onClick={() => navigate(`/details/${job._id}`)}>
+                    View Details
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
       {visibleJobs.length === 0 ? (
         <div className="empty-state">
           <h3>{showAppliedOnly ? "No applied internships found" : "No internships found"}</h3>
@@ -262,9 +333,14 @@ const StudentDashboard = () => {
                   <span className="meta-chip applied-chip">Applied</span>
                 )}
               </div>
-              <button className="button-primary" onClick={() => navigate(`/details/${job._id}`)}>
-                View Details
-              </button>
+              <div className="button-row">
+                <button className="button-light" onClick={() => handleToggleSave(job._id)}>
+                  {savedInternshipIds.has(job._id) ? "Saved" : "Save"}
+                </button>
+                <button className="button-primary" onClick={() => navigate(`/details/${job._id}`)}>
+                  View Details
+                </button>
+              </div>
             </article>
           ))}
         </div>

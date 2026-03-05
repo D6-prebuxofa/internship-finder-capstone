@@ -17,6 +17,7 @@ const CompanyDashboard = () => {
   const [editingId, setEditingId] = useState(null);
   const [internships, setInternships] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,10 +32,16 @@ const CompanyDashboard = () => {
     try {
       const internshipsPromise = fetch(`${API_BASE_URL}/api/company/${user._id}/internships`).then((res) => res.json());
       const applicationsPromise = fetch(`${API_BASE_URL}/api/company/${user._id}/applications`).then((res) => res.json());
-      const [internshipsData, applicationsData] = await Promise.all([internshipsPromise, applicationsPromise]);
+      const notificationsPromise = fetch(`${API_BASE_URL}/api/company/${user._id}/notifications`).then((res) => res.json());
+      const [internshipsData, applicationsData, notificationsData] = await Promise.all([
+        internshipsPromise,
+        applicationsPromise,
+        notificationsPromise
+      ]);
 
       setInternships(Array.isArray(internshipsData) ? internshipsData : []);
       setApplications(Array.isArray(applicationsData) ? applicationsData : []);
+      setNotifications(Array.isArray(notificationsData) ? notificationsData : []);
     } catch (error) {
       console.error("Company dashboard fetch error:", error);
       alert("Failed to load company data");
@@ -155,6 +162,23 @@ const CompanyDashboard = () => {
     }
   };
 
+  const handleMarkNotificationsRead = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/company/${user._id}/notifications/read`, {
+        method: "PUT"
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        alert(data.message || "Failed to mark notifications");
+        return;
+      }
+      fetchCompanyData();
+    } catch (error) {
+      console.error("Mark notifications error:", error);
+      alert("Network error while marking notifications");
+    }
+  };
+
   if (!user || user.role !== "company") {
     return null;
   }
@@ -169,6 +193,34 @@ const CompanyDashboard = () => {
 
   return (
     <section className="container">
+      <section className="applications-section">
+        <div className="dashboard-header">
+          <h3>Application Notifications</h3>
+          {notifications.some((item) => !item.isRead) && (
+            <button className="button-light" onClick={handleMarkNotificationsRead}>
+              Mark all as read
+            </button>
+          )}
+        </div>
+        {notifications.length === 0 ? (
+          <p className="muted-text">No new notifications.</p>
+        ) : (
+          <div className="applications-grid">
+            {notifications.slice(0, 6).map((notification) => (
+              <article key={notification._id} className="application-card">
+                <p className="application-meta">{notification.message}</p>
+                <p className="application-meta">
+                  Status: <strong>{notification.isRead ? "Read" : "New"}</strong>
+                </p>
+                <p className="application-meta">
+                  {new Date(notification.createdAt).toLocaleString()}
+                </p>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
       <section id="post-internship" className="applications-section profile-section">
         <h3>{editingId ? "Edit Internship" : "Post Internship"}</h3>
         <form onSubmit={handleSubmitInternship} className="auth-form profile-form">

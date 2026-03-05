@@ -6,7 +6,7 @@ const Register = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const roleParam = searchParams.get("role");
-  const defaultRole = ["student", "company", "admin"].includes(roleParam) ? roleParam : "student";
+  const defaultRole = ["student", "company"].includes(roleParam) ? roleParam : "student";
 
   const [formData, setFormData] = useState({
     name: "",
@@ -94,7 +94,6 @@ const Register = () => {
         <select name="role" value={formData.role} onChange={handleChange}>
           <option value="student">Student</option>
           <option value="company">Company</option>
-          <option value="admin">Admin</option>
         </select>
 
         <button type="submit" className="button-primary">
