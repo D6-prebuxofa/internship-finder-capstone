@@ -14,7 +14,21 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 const app = express();
 mongoose.set("bufferCommands", false);
 
-app.use(cors());
+const allowedOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("CORS not allowed for this origin"));
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 console.log("SERVER STARTED");
@@ -30,14 +44,16 @@ mongoose
   .catch((err) => console.log("MongoDB Error:", err));
 
 
-if (!fs.existsSync("uploads")) {
-  fs.mkdirSync("uploads");
+const uploadsDir = path.join(__dirname, "uploads");
+
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/");
+    cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + file.originalname);
@@ -47,7 +63,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(uploadsDir));
 
 
 const userSchema = new mongoose.Schema({

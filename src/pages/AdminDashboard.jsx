@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
-const API_BASE = "http://127.0.0.1:5000";
+import API_BASE_URL from "../config/api";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -24,8 +23,8 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       const [usersResponse, internshipsResponse] = await Promise.all([
-        fetch(`${API_BASE}/api/admin/users?adminId=${adminId}`),
-        fetch(`${API_BASE}/api/admin/internships?adminId=${adminId}`)
+        fetch(`${API_BASE_URL}/api/admin/users?adminId=${adminId}`),
+        fetch(`${API_BASE_URL}/api/admin/internships?adminId=${adminId}`)
       ]);
       const usersText = await usersResponse.text();
       const internshipsText = await internshipsResponse.text();
@@ -66,7 +65,7 @@ const AdminDashboard = () => {
 
   const handleRoleChange = async (targetUserId, role) => {
     try {
-      const response = await fetch(`${API_BASE}/api/admin/users/${targetUserId}/role`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/users/${targetUserId}/role`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminId, role })
@@ -88,7 +87,7 @@ const AdminDashboard = () => {
     if (!ok) return;
 
     try {
-      const response = await fetch(`${API_BASE}/api/admin/users/${targetUserId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/users/${targetUserId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminId })
@@ -110,7 +109,7 @@ const AdminDashboard = () => {
     if (!ok) return;
 
     try {
-      const response = await fetch(`${API_BASE}/api/admin/internships/${internshipId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/internships/${internshipId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminId })

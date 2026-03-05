@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import API_BASE_URL from "../config/api";
 
 const InternshipDetails = () => {
   const { id } = useParams();
@@ -14,7 +15,7 @@ const InternshipDetails = () => {
 
   useEffect(() => {
     const fetchInternships = async () => {
-      const response = await fetch("http://127.0.0.1:5000/api/internships");
+      const response = await fetch(`${API_BASE_URL}/api/internships`);
       const data = await response.json();
       const selected = data.find((item) => item._id === id);
       setJob(selected);
@@ -40,7 +41,7 @@ const InternshipDetails = () => {
     formData.append("coverLetter", coverLetter);
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/applications/apply", {
+      const response = await fetch(`${API_BASE_URL}/api/applications/apply`, {
         method: "POST",
         body: formData
       });

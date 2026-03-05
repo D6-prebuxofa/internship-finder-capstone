@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API_BASE_URL from "../config/api";
 
 const Internships = () => {
   const [internships, setInternships] = useState([]);
@@ -7,9 +8,7 @@ const Internships = () => {
 
   useEffect(() => {
     const fetchInternships = async () => {
-      const response = await fetch(
-        "http://127.0.0.1:5000/api/internships"
-      );
+      const response = await fetch(`${API_BASE_URL}/api/internships`);
 
       const data = await response.json();
       setInternships(data);

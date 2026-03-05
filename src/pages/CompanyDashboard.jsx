@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
-const API_BASE = "http://127.0.0.1:5000";
+import API_BASE_URL from "../config/api";
 
 const initialForm = {
   title: "",
@@ -30,8 +29,8 @@ const CompanyDashboard = () => {
     if (!user?._id) return;
     setLoading(true);
     try {
-      const internshipsPromise = fetch(`${API_BASE}/api/company/${user._id}/internships`).then((res) => res.json());
-      const applicationsPromise = fetch(`${API_BASE}/api/company/${user._id}/applications`).then((res) => res.json());
+      const internshipsPromise = fetch(`${API_BASE_URL}/api/company/${user._id}/internships`).then((res) => res.json());
+      const applicationsPromise = fetch(`${API_BASE_URL}/api/company/${user._id}/applications`).then((res) => res.json());
       const [internshipsData, applicationsData] = await Promise.all([internshipsPromise, applicationsPromise]);
 
       setInternships(Array.isArray(internshipsData) ? internshipsData : []);
@@ -72,7 +71,7 @@ const CompanyDashboard = () => {
   const handleSubmitInternship = async (e) => {
     e.preventDefault();
     try {
-      const endpoint = editingId ? `${API_BASE}/api/internships/${editingId}` : `${API_BASE}/api/internships`;
+      const endpoint = editingId ? `${API_BASE_URL}/api/internships/${editingId}` : `${API_BASE_URL}/api/internships`;
       const method = editingId ? "PUT" : "POST";
 
       const response = await fetch(endpoint, {
@@ -115,7 +114,7 @@ const CompanyDashboard = () => {
     if (!ok) return;
 
     try {
-      const response = await fetch(`${API_BASE}/api/internships/${internshipId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/internships/${internshipId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ companyId: user._id })
@@ -137,7 +136,7 @@ const CompanyDashboard = () => {
 
   const handleStatusChange = async (applicationId, status) => {
     try {
-      const response = await fetch(`${API_BASE}/api/applications/${applicationId}/status`, {
+      const response = await fetch(`${API_BASE_URL}/api/applications/${applicationId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ companyId: user._id, status })

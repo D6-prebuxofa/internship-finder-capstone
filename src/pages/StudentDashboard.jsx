@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import API_BASE_URL from "../config/api";
 
 const StudentDashboard = () => {
   const [jobs, setJobs] = useState([]);
@@ -35,9 +36,9 @@ const StudentDashboard = () => {
 
     const fetchDashboardData = async () => {
       try {
-        const internshipsPromise = fetch("http://127.0.0.1:5000/api/internships").then((res) => res.json());
+        const internshipsPromise = fetch(`${API_BASE_URL}/api/internships`).then((res) => res.json());
         const applicationsPromise = currentUser?._id
-          ? fetch(`http://127.0.0.1:5000/api/applications/${currentUser._id}`).then((res) => res.json())
+          ? fetch(`${API_BASE_URL}/api/applications/${currentUser._id}`).then((res) => res.json())
           : Promise.resolve([]);
 
         const [internshipsData, applicationsData] = await Promise.all([
@@ -96,7 +97,7 @@ const StudentDashboard = () => {
         payload.password = profileForm.password.trim();
       }
 
-      const response = await fetch(`http://127.0.0.1:5000/api/users/${currentUser._id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/users/${currentUser._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
