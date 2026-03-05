@@ -7,6 +7,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const user = JSON.parse(localStorage.getItem("user"));
+  const adminId = user?._id || user?.id;
 
   const [users, setUsers] = useState([]);
   const [internships, setInternships] = useState([]);
@@ -19,17 +20,30 @@ const AdminDashboard = () => {
   }, [navigate, user]);
 
   const fetchAdminData = async () => {
-    if (!user?._id) return;
+    if (!adminId) return;
     setLoading(true);
     try {
-      const usersPromise = fetch(`${API_BASE}/api/admin/users?adminId=${user._id}`).then((res) => res.json());
-      const internshipsPromise = fetch(`${API_BASE}/api/admin/internships?adminId=${user._id}`).then((res) => res.json());
-      const [usersData, internshipsData] = await Promise.all([usersPromise, internshipsPromise]);
+      const [usersResponse, internshipsResponse] = await Promise.all([
+        fetch(`${API_BASE}/api/admin/users?adminId=${adminId}`),
+        fetch(`${API_BASE}/api/admin/internships?adminId=${adminId}`)
+      ]);
+      const usersText = await usersResponse.text();
+      const internshipsText = await internshipsResponse.text();
+      const usersData = usersText ? JSON.parse(usersText) : [];
+      const internshipsData = internshipsText ? JSON.parse(internshipsText) : [];
+
+      if (!usersResponse.ok) {
+        throw new Error(usersData.message || "Failed to load users");
+      }
+      if (!internshipsResponse.ok) {
+        throw new Error(internshipsData.message || "Failed to load internships");
+      }
+
       setUsers(Array.isArray(usersData) ? usersData : []);
       setInternships(Array.isArray(internshipsData) ? internshipsData : []);
     } catch (error) {
       console.error("Admin dashboard fetch error:", error);
-      alert("Failed to load admin dashboard data");
+      alert(error.message || "Failed to load admin dashboard data");
     } finally {
       setLoading(false);
     }
@@ -37,7 +51,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchAdminData();
-  }, [user?._id]);
+  }, [adminId]);
 
   useEffect(() => {
     const sectionMap = {
@@ -55,7 +69,7 @@ const AdminDashboard = () => {
       const response = await fetch(`${API_BASE}/api/admin/users/${targetUserId}/role`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminId: user._id, role })
+        body: JSON.stringify({ adminId, role })
       });
       const data = await response.json();
       if (!response.ok) {
@@ -77,7 +91,7 @@ const AdminDashboard = () => {
       const response = await fetch(`${API_BASE}/api/admin/users/${targetUserId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminId: user._id })
+        body: JSON.stringify({ adminId })
       });
       const data = await response.json();
       if (!response.ok) {
@@ -99,7 +113,7 @@ const AdminDashboard = () => {
       const response = await fetch(`${API_BASE}/api/admin/internships/${internshipId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminId: user._id })
+        body: JSON.stringify({ adminId })
       });
       const data = await response.json();
       if (!response.ok) {
@@ -142,7 +156,7 @@ const AdminDashboard = () => {
                   <select
                     value={member.role}
                     onChange={(e) => handleRoleChange(member._id, e.target.value)}
-                    disabled={member._id === user._id}
+                    disabled={member._id === adminId}
                   >
                     <option value="student">student</option>
                     <option value="company">company</option>
@@ -150,7 +164,7 @@ const AdminDashboard = () => {
                   </select>
                   <button
                     className="button-primary"
-                    disabled={member._id === user._id}
+                    disabled={member._id === adminId}
                     onClick={() => handleDeleteUser(member._id, member.name)}
                   >
                     Delete User

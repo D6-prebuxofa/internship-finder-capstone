@@ -1,15 +1,27 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const Register = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const roleParam = searchParams.get("role");
+  const defaultRole = ["student", "company", "admin"].includes(roleParam) ? roleParam : "student";
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
-    role: "student"
+    role: defaultRole
   });
+
+  useEffect(() => {
+    const existingUser = JSON.parse(localStorage.getItem("user"));
+    if (!existingUser) return;
+
+    if (existingUser.role === "company") navigate("/company/dashboard");
+    else if (existingUser.role === "admin") navigate("/admin/dashboard");
+    else navigate("/dashboard");
+  }, [navigate]);
 
   const handleChange = (e) => {
     setFormData({

@@ -1,21 +1,60 @@
-<<<<<<< HEAD
-# React + Vite
+# Internship Finder Capstone
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Full-stack internship platform built with React (Vite), Node.js (Express), and MongoDB Atlas.
 
-Currently, two official plugins are available:
+## Tech Stack
+- Frontend: React, React Router, CSS
+- Backend: Node.js, Express, Mongoose, Multer
+- Database: MongoDB Atlas
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Roles and Features
 
-## React Compiler
+### Student
+- Register and login
+- Search and view internships
+- Apply for internships
+- Update profile (name, email, mobile, password)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Company
+- Register and login
+- Post internships
+- Edit/delete own internship listings
+- Manage applications (update status)
 
-## Expanding the ESLint configuration
+### Admin
+- Manage users (view, role update, delete)
+- Monitor all internship postings
+- Delete inappropriate internship postings
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-=======
-# internship-finder-capstone
-Full-stack Internship Finder platform built with React/Next.js, Node.js (Express), and MongoDB. Supports role-based authentication, internship posting, and application management for students and recruiters.
->>>>>>> 9fb8fea15a97ab51e7c4151190be26399c02f2a1
+## Route Access Rules
+- `/dashboard`: student only
+- `/company/dashboard`: company only
+- `/admin/dashboard`: admin only
+- `/details/:id`: student only
+- Unauthorized users are redirected to login or their own dashboard.
+
+## Run Locally
+
+### 1) Backend
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+### 2) Frontend
+```bash
+cd ..
+npm install
+npm run dev
+```
+
+## Environment
+
+Create `backend/.env`:
+```env
+MONGO_URI=your_mongodb_connection_string
+PORT=5000
+```
+
+Use `backend/.env.example` as template.

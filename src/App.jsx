@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -31,10 +32,38 @@ function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<StudentDashboard />} />
-          <Route path="/company/dashboard" element={<CompanyDashboard />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/details/:id" element={<InternshipDetails />} />
+          <Route
+            path="/dashboard"
+            element={(
+              <ProtectedRoute allowedRoles={["student"]}>
+                <StudentDashboard />
+              </ProtectedRoute>
+            )}
+          />
+          <Route
+            path="/company/dashboard"
+            element={(
+              <ProtectedRoute allowedRoles={["company"]}>
+                <CompanyDashboard />
+              </ProtectedRoute>
+            )}
+          />
+          <Route
+            path="/admin/dashboard"
+            element={(
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            )}
+          />
+          <Route
+            path="/details/:id"
+            element={(
+              <ProtectedRoute allowedRoles={["student"]}>
+                <InternshipDetails />
+              </ProtectedRoute>
+            )}
+          />
         </Routes>
       </main>
     </>
