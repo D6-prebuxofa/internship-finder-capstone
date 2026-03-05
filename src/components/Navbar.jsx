@@ -4,6 +4,13 @@ const Navbar = ({ theme, onToggleTheme }) => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
   const isCompany = user?.role === "company";
+  const isAdmin = user?.role === "admin";
+
+  const getDashboardRoute = () => {
+    if (isCompany) return "/company/dashboard";
+    if (isAdmin) return "/admin/dashboard";
+    return "/dashboard";
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -12,11 +19,20 @@ const Navbar = ({ theme, onToggleTheme }) => {
 
   return (
     <header className="navbar">
-      <button className="logo logo-button" onClick={() => navigate("/dashboard")}>INTERNSHIP FINDER</button>
+      <button className="logo logo-button" onClick={() => navigate(getDashboardRoute())}>INTERNSHIP FINDER</button>
 
       <div className="nav-actions">
         {user && <span className="nav-user">{user.name}</span>}
-        {isCompany ? (
+        {isAdmin ? (
+          <>
+            <button className="button-light" onClick={() => navigate("/admin/dashboard#users")}>
+              Manage Users
+            </button>
+            <button className="button-light" onClick={() => navigate("/admin/dashboard#postings")}>
+              Monitor Postings
+            </button>
+          </>
+        ) : isCompany ? (
           <>
             <button className="button-light" onClick={() => navigate("/company/dashboard#post")}>
               Post Internship
@@ -41,7 +57,7 @@ const Navbar = ({ theme, onToggleTheme }) => {
         <button className="button-light" onClick={onToggleTheme}>
           {theme === "light" ? "Dark Mode" : "Light Mode"}
         </button>
-        <button className="button-light" onClick={() => navigate(isCompany ? "/company/dashboard" : "/dashboard")}>
+        <button className="button-light" onClick={() => navigate(getDashboardRoute())}>
           Dashboard
         </button>
         <button className="button-light" onClick={handleLogout}>

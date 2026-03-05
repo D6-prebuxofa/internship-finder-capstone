@@ -105,6 +105,12 @@ const applicationSchema = new mongoose.Schema({
 
 const Application = mongoose.model("Application", applicationSchema);
 
+const isAdminUser = async (adminId) => {
+  if (!adminId) return false;
+  const adminUser = await User.findById(adminId);
+  return adminUser?.role === "admin";
+};
+
 
 
 app.post("/api/auth/register", async (req, res) => {
@@ -420,6 +426,119 @@ app.put("/api/applications/:id/status", async (req, res) => {
     res.status(200).json({ message: "Application status updated", application });
   } catch (error) {
     console.log("Update Application Status Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get("/api/admin/users", async (req, res) => {
+  try {
+    const { adminId } = req.query;
+    if (!(await isAdminUser(adminId))) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const users = await User.find().sort({ name: 1 });
+    res.status(200).json(users);
+  } catch (error) {
+    console.log("Fetch Admin Users Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.put("/api/admin/users/:id/role", async (req, res) => {
+  try {
+    const { adminId, role } = req.body;
+    if (!(await isAdminUser(adminId))) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    if (!["student", "company", "admin"].includes(role)) {
+      return res.status(400).json({ message: "Invalid role" });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.role = role;
+    await user.save();
+    res.status(200).json({ message: "User role updated", user });
+  } catch (error) {
+    console.log("Update User Role Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.delete("/api/admin/users/:id", async (req, res) => {
+  try {
+    const { adminId } = req.body;
+    if (!(await isAdminUser(adminId))) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    if (req.params.id === adminId) {
+      return res.status(400).json({ message: "Admin cannot delete own account" });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.role === "student") {
+      await Application.deleteMany({ userId: req.params.id });
+    }
+
+    if (user.role === "company") {
+      const companyInternships = await Internship.find({ companyId: req.params.id }, "_id");
+      const internshipIds = companyInternships.map((item) => item._id.toString());
+      if (internshipIds.length > 0) {
+        await Application.deleteMany({ internshipId: { $in: internshipIds } });
+      }
+      await Internship.deleteMany({ companyId: req.params.id });
+    }
+
+    await user.deleteOne();
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.log("Delete User Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get("/api/admin/internships", async (req, res) => {
+  try {
+    const { adminId } = req.query;
+    if (!(await isAdminUser(adminId))) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const internships = await Internship.find().sort({ createdAt: -1 });
+    res.status(200).json(internships);
+  } catch (error) {
+    console.log("Fetch Admin Internships Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.delete("/api/admin/internships/:id", async (req, res) => {
+  try {
+    const { adminId } = req.body;
+    if (!(await isAdminUser(adminId))) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const internship = await Internship.findById(req.params.id);
+    if (!internship) {
+      return res.status(404).json({ message: "Internship not found" });
+    }
+
+    await Application.deleteMany({ internshipId: internship._id.toString() });
+    await internship.deleteOne();
+    res.status(200).json({ message: "Internship removed successfully" });
+  } catch (error) {
+    console.log("Admin Delete Internship Error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
