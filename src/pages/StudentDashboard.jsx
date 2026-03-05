@@ -164,9 +164,12 @@ const StudentDashboard = () => {
   );
   const appliedInternshipIds = new Set(applications.map((item) => item.internshipId));
   const showAppliedOnly = location.hash === "#my-applications";
+  const showSavedOnly = location.hash === "#saved";
   const visibleJobs = showAppliedOnly
     ? filteredJobs.filter((job) => appliedInternshipIds.has(job._id))
-    : filteredJobs;
+    : showSavedOnly
+      ? filteredJobs.filter((job) => savedInternshipIds.has(job._id))
+      : filteredJobs;
 
   const savedJobs = useMemo(
     () => jobs.filter((job) => savedInternshipIds.has(job._id)),
@@ -246,9 +249,11 @@ const StudentDashboard = () => {
 
       <div className="dashboard-header">
         <div>
-          <h2 className="page-title">Internship Opportunities</h2>
+          <h2 className="page-title">{showSavedOnly ? "Saved Internships" : "Internship Opportunities"}</h2>
           <p className="page-subtitle">
-            {showAppliedOnly
+            {showSavedOnly
+              ? "Showing only internships you saved."
+              : showAppliedOnly
               ? "Showing only internships you have applied to."
               : "Search roles and open each listing for application details."}
           </p>
@@ -264,7 +269,8 @@ const StudentDashboard = () => {
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      <section id="my-applications" className="applications-section">
+      {!showSavedOnly && (
+        <section id="my-applications" className="applications-section">
         <h3>My Applications</h3>
         {applications.length === 0 ? (
           <p className="muted-text">You have not submitted any applications yet.</p>
@@ -283,7 +289,8 @@ const StudentDashboard = () => {
             ))}
           </div>
         )}
-      </section>
+        </section>
+      )}
 
       <section id="saved-internships" className="applications-section">
         <h3>Saved Internships</h3>
@@ -312,7 +319,7 @@ const StudentDashboard = () => {
         )}
       </section>
 
-      {visibleJobs.length === 0 ? (
+      {!showSavedOnly && (visibleJobs.length === 0 ? (
         <div className="empty-state">
           <h3>{showAppliedOnly ? "No applied internships found" : "No internships found"}</h3>
           <p>
@@ -344,7 +351,7 @@ const StudentDashboard = () => {
             </article>
           ))}
         </div>
-      )}
+      ))}
     </section>
   );
 };
