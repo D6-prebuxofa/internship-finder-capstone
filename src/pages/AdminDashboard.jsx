@@ -63,6 +63,11 @@ const AdminDashboard = () => {
     if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [location.hash, loading]);
 
+  const showUsersOnly = location.hash === "#users";
+  const showPostingsOnly = location.hash === "#postings";
+  const showUsersSection = showUsersOnly || !showPostingsOnly;
+  const showPostingsSection = showPostingsOnly || !showUsersOnly;
+
   const handleRoleChange = async (targetUserId, role) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/admin/users/${targetUserId}/role`, {
@@ -162,6 +167,7 @@ const AdminDashboard = () => {
 
   return (
     <section className="container">
+      {showUsersSection && (
       <section id="manage-users" className="applications-section">
         <h3>Manage Users</h3>
         {users.length === 0 ? (
@@ -214,7 +220,9 @@ const AdminDashboard = () => {
           </div>
         )}
       </section>
+      )}
 
+      {showPostingsSection && (
       <section id="monitor-postings" className="applications-section">
         <h3>Monitor Internship Postings</h3>
         {internships.length === 0 ? (
@@ -237,6 +245,7 @@ const AdminDashboard = () => {
           </div>
         )}
       </section>
+      )}
     </section>
   );
 };
