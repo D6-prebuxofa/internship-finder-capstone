@@ -66,6 +66,14 @@ const CompanyDashboard = () => {
     if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [location.hash, loading]);
 
+  const showPostOnly = location.hash === "#post";
+  const showListingsOnly = location.hash === "#listings";
+  const showApplicationsOnly = location.hash === "#applications";
+  const showPostSection = showPostOnly || (!showListingsOnly && !showApplicationsOnly);
+  const showListingsSection = showListingsOnly || (!showPostOnly && !showApplicationsOnly);
+  const showApplicationsSection = showApplicationsOnly || (!showPostOnly && !showListingsOnly);
+  const showNotificationsSection = showApplicationsOnly || (!showPostOnly && !showListingsOnly && !showApplicationsOnly);
+
   const handleInputChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -193,6 +201,7 @@ const CompanyDashboard = () => {
 
   return (
     <section className="container">
+      {showNotificationsSection && (
       <section className="applications-section">
         <div className="dashboard-header">
           <h3>Application Notifications</h3>
@@ -220,7 +229,9 @@ const CompanyDashboard = () => {
           </div>
         )}
       </section>
+      )}
 
+      {showPostSection && (
       <section id="post-internship" className="applications-section profile-section">
         <h3>{editingId ? "Edit Internship" : "Post Internship"}</h3>
         <form onSubmit={handleSubmitInternship} className="auth-form profile-form">
@@ -263,7 +274,9 @@ const CompanyDashboard = () => {
           </div>
         </form>
       </section>
+      )}
 
+      {showListingsSection && (
       <section id="my-listings" className="applications-section">
         <h3>My Internship Listings</h3>
         {internships.length === 0 ? (
@@ -290,7 +303,9 @@ const CompanyDashboard = () => {
           </div>
         )}
       </section>
+      )}
 
+      {showApplicationsSection && (
       <section id="manage-applications" className="applications-section">
         <h3>Manage Applications</h3>
         {applications.length === 0 ? (
@@ -320,6 +335,7 @@ const CompanyDashboard = () => {
           </div>
         )}
       </section>
+      )}
     </section>
   );
 };
